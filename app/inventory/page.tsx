@@ -3,13 +3,23 @@ import { prisma } from "../lib/prisma";
 import { getCurrentUser } from "../lib/auth";
 import { deleteProduct } from "../lib/actions/products";
 import Pagination from "@/components/Pagination";
+import { Product } from "../generated/prisma/client";
+
+interface InventorySearchParams {
+  q?: string;
+  page?: string;
+}
+
+interface InventoryPageProps {
+  searchParams: Promise<InventorySearchParams>;
+}
+
+type InventoryItem = Product;
 
 export default async function InventoryPage({
   searchParams,
-}: {
-  searchParams: Promise<{ q?: string; page?: string }>;
-}) {
-  const params = await searchParams;
+}: InventoryPageProps) {
+  const params: InventorySearchParams = await searchParams;
   const q = (params.q ?? "").trim();
   const user = await getCurrentUser();
   const userId = user.id;
@@ -20,7 +30,7 @@ export default async function InventoryPage({
     ...(q ? { name: { contains: q, mode: "insensitive" as const } } : {}),
   };
 
-  const [totalCount, items] = await Promise.all([
+  const [totalCount, items]: [number, InventoryItem[]] = await Promise.all([
     prisma.product.count({ where }),
     prisma.product.findMany({
       where,

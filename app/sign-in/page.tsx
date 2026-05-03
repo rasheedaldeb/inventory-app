@@ -6,7 +6,10 @@ export default function SignInPage() {
     <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-purple-50  to-purple-100">
       <div className=" max-w-md w-full space-y-8">
         <SignIn />
-        <Link href="/">Go Home</Link>
+        <div className="flex items-center justify-between">
+          <Link href="/">Go Home</Link>
+          <Link href="/dashboard">Go to dashboard</Link>
+        </div>
       </div>
     </div>
   );

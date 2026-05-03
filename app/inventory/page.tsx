@@ -3,7 +3,6 @@ import { prisma } from "../lib/prisma";
 import { getCurrentUser } from "../lib/auth";
 import { deleteProduct } from "../lib/actions/products";
 import Pagination from "@/components/Pagination";
-import { Product } from "../generated/prisma/client";
 
 interface InventorySearchParams {
   q?: string;
@@ -14,7 +13,9 @@ interface InventoryPageProps {
   searchParams: Promise<InventorySearchParams>;
 }
 
-type InventoryItem = Product;
+type InventoryItem = Awaited<
+  ReturnType<typeof prisma.product.findMany>
+>[number];
 
 export default async function InventoryPage({
   searchParams,

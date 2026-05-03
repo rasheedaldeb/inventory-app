@@ -3,6 +3,13 @@ import { prisma } from "../lib/prisma";
 import { getCurrentUser } from "../lib/auth";
 import { TrendingUp } from "lucide-react";
 import ProductsChart from "@/components/ProductsChart";
+import {
+  ReactElement,
+  JSXElementConstructor,
+  ReactNode,
+  ReactPortal,
+  Key,
+} from "react";
 
 export default async function DashboardPage() {
   const user = await getCurrentUser();
@@ -23,16 +30,20 @@ export default async function DashboardPage() {
   ]);
 
   const totalValue = allProducts.reduce(
-    (sum, product) => sum + Number(product.price) * Number(product.quantity),
+    (sum: number, product: { price: unknown; quantity: unknown }) =>
+      sum + Number(product.price) * Number(product.quantity),
     0,
   );
 
-  const inStackCount = allProducts.filter((p) => Number(p.quantity) > 5).length;
+  const inStackCount = allProducts.filter(
+    (p: { quantity: unknown }) => Number(p.quantity) > 5,
+  ).length;
   const lowStackCount = allProducts.filter(
-    (p) => Number(p.quantity) <= 5 && Number(p.quantity) >= 1,
+    (p: { quantity: unknown }) =>
+      Number(p.quantity) <= 5 && Number(p.quantity) >= 1,
   ).length;
   const outOfStackCount = allProducts.filter(
-    (p) => Number(p.quantity) === 0,
+    (p: { quantity: unknown }) => Number(p.quantity) === 0,
   ).length;
   const inStackPrecentage =
     totalProducts > 0 ? Math.round((inStackCount / totalProducts) * 100) : 0;
@@ -50,10 +61,12 @@ export default async function DashboardPage() {
     weekEnd.setDate(weekEnd.getDate() + 6);
     weekStart.setHours(23, 59, 59, 999);
     const weekLabel = `${String(weekStart.getMonth() + 1).padStart(2, "0")}/${String(weekStart.getDate() + 1).padStart(2, "0")}`;
-    const weekProducts = allProducts.filter((item) => {
-      const produductDate = new Date(item.createdAt);
-      return produductDate >= weekStart && produductDate <= weekEnd;
-    });
+    const weekProducts = allProducts.filter(
+      (item: { createdAt: string | number | Date }) => {
+        const produductDate = new Date(item.createdAt);
+        return produductDate >= weekStart && produductDate <= weekEnd;
+      },
+    );
     weeklyProductsData.push({
       week: weekLabel,
       products: weekProducts.length,
@@ -135,44 +148,104 @@ export default async function DashboardPage() {
               </h2>
             </div>
             <div className="space-y-3 ">
-              {(await recentProducts).map((item, i) => {
-                const stackLevel =
-                  item.quantity === 0
-                    ? 0
-                    : item.quantity <= (item.lowStackAt || 5)
-                      ? 1
-                      : 2;
-                const bgColors = [
-                  "bg-red-600",
-                  "bg-yellow-600",
-                  "bg-green-600",
-                ];
-                const textColor = [
-                  "text-red-600",
-                  "text-yellow-600",
-                  "text-green-600",
-                ];
-                return (
-                  <div
-                    key={i}
-                    className="flex items-center justify-between p-3 rounded-lg bg-gray-50"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div
-                        className={`w-3 h-3 rounded-full ${bgColors[stackLevel]}`}
-                      />
-                      <span className="text-sm font-medium text-gray-900">
-                        {item.name}
-                      </span>
-                    </div>
+              {(await recentProducts)?.map(
+                (
+                  item: {
+                    quantity:
+                      | string
+                      | number
+                      | bigint
+                      | boolean
+                      | ReactElement<
+                          unknown,
+                          string | JSXElementConstructor<unknown>
+                        >
+                      | Iterable<ReactNode>
+                      | Promise<
+                          | string
+                          | number
+                          | bigint
+                          | boolean
+                          | ReactPortal
+                          | ReactElement<
+                              unknown,
+                              string | JSXElementConstructor<unknown>
+                            >
+                          | Iterable<ReactNode>
+                          | null
+                          | undefined
+                        >
+                      | null
+                      | undefined;
+                    lowStackAt: unknown;
+                    name:
+                      | string
+                      | number
+                      | bigint
+                      | boolean
+                      | ReactElement<
+                          unknown,
+                          string | JSXElementConstructor<unknown>
+                        >
+                      | Iterable<ReactNode>
+                      | ReactPortal
+                      | Promise<
+                          | string
+                          | number
+                          | bigint
+                          | boolean
+                          | ReactPortal
+                          | ReactElement<
+                              unknown,
+                              string | JSXElementConstructor<unknown>
+                            >
+                          | Iterable<ReactNode>
+                          | null
+                          | undefined
+                        >
+                      | null
+                      | undefined;
+                  },
+                  i: Key | null | undefined,
+                ) => {
+                  const stackLevel =
+                    (item.quantity ?? 0) === 0
+                      ? 0
+                      : (item.quantity ?? 0) <= (item.lowStackAt || 5)
+                        ? 1
+                        : 2;
+                  const bgColors = [
+                    "bg-red-600",
+                    "bg-yellow-600",
+                    "bg-green-600",
+                  ];
+                  const textColor = [
+                    "text-red-600",
+                    "text-yellow-600",
+                    "text-green-600",
+                  ];
+                  return (
                     <div
-                      className={`text-sm font-medium ${textColor[stackLevel]}`}
+                      key={i}
+                      className="flex items-center justify-between p-3 rounded-lg bg-gray-50"
                     >
-                      {item.quantity} units
+                      <div className="flex items-center space-x-3">
+                        <div
+                          className={`w-3 h-3 rounded-full ${bgColors[stackLevel]}`}
+                        />
+                        <span className="text-sm font-medium text-gray-900">
+                          {item.name}
+                        </span>
+                      </div>
+                      <div
+                        className={`text-sm font-medium ${textColor[stackLevel]}`}
+                      >
+                        {item.quantity} units
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                },
+              )}
             </div>
           </div>
           {/* Efficiency */}
